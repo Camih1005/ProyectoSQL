@@ -1,0 +1,139 @@
+create database TallerCamilo;
+use TallerCamilo;
+
+
+create table departamento(
+id int primary key,
+nombre varchar(50) not null
+);
+
+create table ciudad(
+id int primary key,
+nombre varchar(50),
+idDepartamento int,
+foreign key(idDepartamento)references departamento(id)
+);
+
+create table tipo_telefono(
+id int primary key auto_increment,
+tipo varchar(20) not null
+);
+
+create table marca_vehiculo(
+id int primary key auto_increment,
+nombre varchar(25) not null
+);
+
+create table taller(
+id int primary key auto_increment,
+direccion varchar(100) not null,
+idCiudad int,
+foreign key(idCiudad)references ciudad(id)
+);
+
+create table cliente(
+id int primary key,
+nombre varchar(50) not null,
+apellido1 varchar(50) not null,
+apellido2 varchar(50),
+email varchar(50) not null
+);
+
+create table telefono_cliente(
+id int primary key auto_increment,
+telefono varchar(13) not null,
+idCliente int,
+idTipo int,
+foreign key(idCliente)references cliente(id),
+foreign key(idTipo) references tipo_telefono(id)
+);
+
+create table vehiculo(
+id int primary key auto_increment,
+placa varchar(6) unique not null,
+modelo varchar(50) not null,
+año int not null,
+idCliente int,
+idMarca int,
+foreign key(idCliente)references cliente(id),
+foreign key(idMarca)references marca_vehiculo(id)
+);
+
+create table servicio(
+id int primary key,
+nombre varchar(60) not null,
+descripcion text not null,
+precio double(15,2) not null
+);
+
+create table reparacion(
+id int primary key auto_increment,
+fechaIngreso date not null,
+fechaEsperada date not null,
+fechaEntrega date not null,
+descripcion text,
+Total double(15,2) not null 
+);
+
+create table reparacion_servicio(
+id int primary key auto_increment,
+idReparacion int,
+idServicio int,
+foreign key(idReparacion)references reparacion(id),
+foreign key (idservicio) references servicio(id)
+);
+
+create table empleado(
+id int primary key,
+nombre varchar(50) not null,
+apellido1 varchar(50) not null,
+apellido2 varchar(50),
+idTaller int,
+foreign key(idTaller)references taller(id)
+);
+
+create table telefono_empleado(
+id int primary key auto_increment,
+telefono varchar(13) not null,
+idEmpleado int,
+idTipo int,
+foreign key(idEmpleado)references empleado(id),
+foreign key(idTipo) references tipo_telefono(id)
+);
+
+create table reparacion_empleado(
+idEmpleado int,
+idReparacion int,
+primary key(idEmpleado,idReparacion),
+foreign key(idEmpleado) references empleado(id),
+foreign key(idReparacion)references reparacion(id)
+);
+
+create table cita(
+id int primary key auto_increment,
+fecha datetime not null,
+idCliente int,
+idTaller int,
+idServicio int,
+foreign key(idCliente) references cliente(id),
+foreign key(idTaller) references taller(id),
+foreign key(idServicio) references servicio(id)
+);
+
+create table facturacion(
+id int primary key auto_increment,
+fecha date not null,
+total double(15,2) not null default 0,
+idCliente int,
+foreign key(idCliente) references cliente(id)
+);
+
+create table factura_detalle(
+idFacturacion int,
+idReparacion int,
+cantidad int not null,
+precio double(15,2) not null,
+primary key(idFacturacion,idReparacion),
+foreign key(idReparacion)references reparacion(id),
+foreign key(idFacturacion)references facturacion(id)
+);
