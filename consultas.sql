@@ -45,7 +45,8 @@ where date(fecha) = "2018-04-05";
 6. Generar una factura para un cliente específico en una fecha determinada
 */
 
-select fd.idFacturacion,rp.fechaEntrega,rp.descripcion,fd.precio,(fd.precio * 1.21 - fd.precio) as iva,(fd.precio * 1.21) as TotalPagar  from factura_detalle as fd
+select fd.idFacturacion,rp.fechaEntrega,rp.descripcion,fd.precio,(fd.precio * 1.21 - fd.precio) 
+as iva,(fd.precio * 1.21) as TotalPagar  from factura_detalle as fd
 join reparacion as rp on rp.id = fd.idReparacion
 where date(rp.fechaEntrega) = "2005-07-13";
 
@@ -214,5 +215,95 @@ group by pp.idPieza,pp.idProveedor,pz.precio
 order by pz.precio desc limit 3 ;
 
 
-select * from pieza ;
+/*
+4. Listar las reparaciones que no utilizaron piezas específicas durante el último
+año
+*/
 
+select rs.idReparacion,rs.idPieza from reparacion_servicio as rs
+left join reparacion as r on rs.idReparacion = r.id
+where year(r.fechaIngreso) = (select (max(year(fechaIngreso))) from reparacion)
+and rs.idPieza is null;
+
+
+/*
+5. Obtener las piezas que están en inventario por debajo del 10% del stock inicial
+*/
+SELECT pz.id AS IdPieza, SUM(it.cantidad) AS cantidad
+FROM inventario_taller AS it
+JOIN pieza AS pz ON pz.id = it.idPieza
+GROUP BY IdPieza
+HAVING SUM(it.cantidad) < 30;
+
+
+/*
+procedimientos almacenados
+*/
+
+/*
+1. Crear un procedimiento almacenado para insertar una nueva reparación.
+*/
+drop procedure if exists NewReparacion;
+DELIMITER //
+CREATE PROCEDURE NewReparacion(
+    IN fechaEs DATE,
+    IN fechaEn DATE,
+    IN descripcionp TEXT,
+    IN totalp DOUBLE(15,2),
+    IN idVehiculo INT
+)
+BEGIN
+    INSERT INTO reparacion (fechaIngreso, fechaEsperada, fechaEntrega, descripcion, Total, idVehiculo) 
+    VALUES (CURDATE(), fechaEs, fechaEn, descripcionp, totalp, idVehiculo);
+
+    SELECT * FROM reparacion 
+    WHERE DATE(fechaIngreso) = (SELECT MAX(DATE(fechaIngreso)) FROM reparacion);
+END //
+DELIMITER ;
+
+CALL NewReparacion('2024-09-06', '2024-10-06', 'averiado', 220000, 2);
+
+/*
+2. Crear un procedimiento almacenado para actualizar el inventario de una pieza.
+*/
+select * from inventario_taller;
+
+delimiter //
+create procedure ActualizarInventario(
+in idTallerp int,
+in idPiezap int,
+in cantidadp int
+)
+begin
+UPDATE inventario_taller
+SET cantidad = cantidad + cantidadp
+WHERE idPieza = idPiezap;
+
+select * from inventario_taller;
+end//
+delimiter ;
+drop procedure ActualizarInventario;
+
+
+call ActualizarInventario(1,1,30);
+
+
+/*
+3. Crear un procedimiento almacenado para eliminar una cita
+*/
+
+
+delimiter//
+create procedure eliminarCita(
+in idCita int 
+)
+begin 
+DELETE FROM cita
+WHERE id = Idcita
+end//
+delimiter ;
+
+call eliminarCita(1);
+
+
+select * from cita;
