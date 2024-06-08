@@ -142,6 +142,7 @@ foreign key(idTipo) references tipo_telefono(id)
 create table reparacion_empleado(
 idEmpleado int,
 idReparacion int,
+horasTrabajadas int not null,
 primary key(idEmpleado,idReparacion),
 foreign key(idEmpleado) references empleado(id),
 foreign key(idReparacion)references reparacion(id)
@@ -455,13 +456,13 @@ INSERT INTO telefono_empleado (telefono, idEmpleado, idTipo) VALUES
 ('3157778899', 4, 1),
 ('3179990011', 5, 1);
 
-INSERT INTO reparacion_empleado (idReparacion, idEmpleado) VALUES 
+INSERT INTO reparacion_empleado (idReparacion, idEmpleado,horasTrabajadas) VALUES 
     -- Reparaciones para el empleado con ID 2 (mecánico 1)
-    (10, 2), (1, 1), (4, 10), (7, 3), (5, 2),
+    (10, 2,8), (1, 1,5), (4, 10,8), (7, 3,4), (5, 2,6),
     -- Reparaciones para el empleado con ID 3 (mecánico 2)
-    (2, 9), (1, 8), (2, 7), (4, 3), (5, 4),
+    (2, 9,6), (1, 8,12), (2, 7,19), (4, 3,5), (5, 4,15),
     -- Reparaciones para el empleado con ID 6 (mecánico 3)
-    (8, 1), (2, 3), (9, 4), (10, 8), (4, 6);
+    (8, 1,2), (2, 3,4), (9, 4,6), (10, 8,14), (4, 6,25);
 
 -- Inserciones para la tabla cita con fechas variadas
 INSERT INTO cita (fecha, idCliente, idVehiculo, idTaller, idServicio) VALUES
@@ -478,16 +479,16 @@ INSERT INTO cita (fecha, idCliente, idVehiculo, idTaller, idServicio) VALUES
 
 -- Inserciones para la tabla facturacion con fechas variadas
 INSERT INTO facturacion (fecha, total, idCliente) VALUES
-('2003-02-25', 500.00, 1),
-('2005-07-13', 200.00, 2),
-('2007-09-28', 350.00, 3),
-('2010-04-17', 300.00, 4),
-('2012-11-30', 600.00, 5),
-('2015-09-08', 450.00, 6),
-('2018-04-19', 400.00, 7),
-('2020-10-29', 550.00, 8),
-('2022-08-03', 480.00, 9),
-('2024-01-18', 520.00, 10);
+('2003-02-25', 12600.00, 1),
+('2005-07-13', 24300.00, 2),
+('2007-09-28', 3540.00, 3),
+('2010-04-17', 30320.00, 4),
+('2012-11-30', 6003.00, 5),
+('2015-09-08', 4550.00, 6),
+('2018-04-19', 4040.00, 7),
+('2020-10-29', 5550.00, 8),
+('2022-08-03', 46780.00, 9),
+('2024-01-18', 522320.00, 10);
 
 -- Insertar datos en la tabla factura_detalle
 INSERT INTO factura_detalle (idFacturacion, idReparacion, cantidad, precio) VALUES 
