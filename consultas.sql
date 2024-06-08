@@ -236,6 +236,7 @@ GROUP BY IdPieza
 HAVING SUM(it.cantidad) < 30;
 
 
+
 /*
 procedimientos almacenados
 */
@@ -243,7 +244,7 @@ procedimientos almacenados
 /*
 1. Crear un procedimiento almacenado para insertar una nueva reparación.
 */
-drop procedure if exists NewReparacion;
+
 DELIMITER //
 CREATE PROCEDURE NewReparacion(
     IN fechaEs DATE,
@@ -282,7 +283,7 @@ WHERE idPieza = idPiezap;
 select * from inventario_taller;
 end//
 delimiter ;
-drop procedure ActualizarInventario;
+
 
 
 call ActualizarInventario(1,1,30);
@@ -292,18 +293,201 @@ call ActualizarInventario(1,1,30);
 3. Crear un procedimiento almacenado para eliminar una cita
 */
 
+DELIMITER //
 
-delimiter//
-create procedure eliminarCita(
-in idCita int 
+CREATE PROCEDURE eliminarCita(
+    IN idCita INT 
 )
-begin 
-DELETE FROM cita
-WHERE id = Idcita
-end//
-delimiter ;
+BEGIN 
+    DELETE FROM cita WHERE id = idCita;
+	SELECT * FROM cita;
+END //
+
+DELIMITER ;
+
 
 call eliminarCita(1);
 
+/*
+4. Crear un procedimiento almacenado para generar una factura
+*/
+delimiter //
 
-select * from cita;
+CREATE PROCEDURE generar_factura_cliente(in cliente_id int)
+begin
+    declare total_factura double default 0;
+    
+    insert into facturacion (fecha, idcliente) values (curdate(), cliente_id);
+    set @factura_id = last_insert_id();
+    
+    select sum(total) into total_factura
+    from reparacion
+    where idvehiculo in (select id from vehiculo where idcliente = cliente_id);
+
+    update facturacion set total = total_factura where id = @factura_id;
+    
+    insert into factura_detalle (idfacturacion, idreparacion, cantidad, precio)
+    select @factura_id, id, 1, total
+    from reparacion
+    where idvehiculo in (select id from vehiculo where idcliente = cliente_id);
+    
+    select concat('se ha generado la factura con id: ', @factura_id) as mensaje;
+end //
+
+delimiter ;
+
+CALL generar_factura_cliente(2);
+
+
+/*
+5. Crear un procedimiento almacenado para obtener el historial de reparaciones
+de un vehículo
+*/
+drop procedure obtener_historial_reparaciones;
+delimiter //
+
+create procedure obtener_historial_reparaciones(in vehiculo_id int)
+begin
+    select r.id, r.fechaIngreso,fechaEntrega, r.descripcion, r.total
+    from reparacion r
+    where r.idVehiculo = vehiculo_id;
+end //
+
+delimiter ;
+
+call obtener_historial_reparaciones(2);
+
+
+/*
+6. Crear un procedimiento almacenado para calcular el costo total de
+reparaciones de un cliente en un período
+*/
+delimiter //
+
+create procedure calcular_costo_total_reparaciones(
+    in cliente_id int,
+    in fecha_inicio date,
+    in fecha_fin date
+)
+begin
+    declare total_costo double default 0;
+    
+    select sum(r.total) into total_costo
+    from reparacion r
+    inner join vehiculo v on r.idVehiculo = v.id
+    where v.idCliente = cliente_id
+    and r.fechaIngreso between fecha_inicio and fecha_fin;
+    
+    select total_costo as costo_total;
+end //
+
+delimiter ;
+
+call calcular_costo_total_reparaciones(1,"2002-01-01","2010-01-01");
+
+
+
+/*
+7. Crear un procedimiento almacenado para obtener la lista de vehículos que
+requieren mantenimiento basado en el kilometraje.
+*/
+drop procedure obtener_vehiculos_mantenimiento_kilometraje;
+delimiter //
+
+create procedure obtener_vehiculos_mantenimiento_kilometraje(
+    in kilometraje_limite int
+)
+begin
+    select id, idMarca, modelo, kilometraje
+    from vehiculo
+    where kilometraje >= kilometraje_limite;
+end //
+
+delimiter ;
+
+call obtener_vehiculos_mantenimiento_kilometraje(80000);
+
+
+
+/*
+8. Crear un procedimiento almacenado para insertar una nueva orden de compra
+*/
+drop procedure insertar_orden_compra;
+delimiter //
+
+create procedure insertar_orden_compra(
+    in idProveedor int,
+    in idEmpleado int,
+    in total int
+)
+begin
+    declare fecha_pedido date;
+    set fecha_pedido = curdate();
+    set @orden_id = last_insert_id();
+    insert into orden_compra (fecha, idProveedor, idEmpleado, total)
+    values (fecha_pedido, idProveedor, idEmpleado, total);
+    
+    select * from orden_compra where id = @orden_id;
+end //
+
+delimiter ;
+
+call insertar_orden_compra(1,3,10);
+
+/*
+9. Crear un procedimiento almacenado para actualizar los datos de un cliente
+*/
+drop procedure actualizar_datos_cliente;
+DELIMITER //
+
+CREATE PROCEDURE actualizar_datos_cliente(
+    IN cliente_id INT,
+    IN nuevo_nombre VARCHAR(255),
+    IN nuevo_apellido1 VARCHAR(255),
+    IN nuevo_apellido2 VARCHAR(255),
+    IN nuevo_email VARCHAR(255)
+)
+BEGIN
+    UPDATE cliente
+    SET nombre = nuevo_nombre,
+        apellido1 = nuevo_apellido1,
+        apellido2 = nuevo_apellido2,
+        email = nuevo_email
+    WHERE id = cliente_id;
+    
+    SELECT CONCAT('Los datos del cliente con ID ', cliente_id, ' han sido actualizados.') AS Mensaje;
+END //
+
+DELIMITER ;
+
+call actualizar_datos_cliente(1,"camilo","hernandez","torres","camiloht0918@gmail.com");
+
+/*
+10. Crear un procedimiento almacenado para obtener los servicios más solicitados
+en un período
+*/
+drop procedure obtener_servicios_mas_solicitados;
+
+delimiter //
+
+CREATE PROCEDURE obtener_servicios_mas_solicitados(
+    in fecha_inicio date,
+    in fecha_fin date
+)
+begin
+    select s.nombre as servicio, count(*) as solicitudes
+    from servicio s
+    inner join reparacion_servicio rs on s.id = rs.idServicio
+    inner join reparacion r on rs.idReparacion = r.id
+    where r.fechaIngreso between fecha_inicio and fecha_fin
+    group by s.nombre
+    order by count(*) desc;
+end //
+
+delimiter ;
+
+
+call obtener_servicios_mas_solicitados("2002-01-01","2010-01-01");
+
+
+
