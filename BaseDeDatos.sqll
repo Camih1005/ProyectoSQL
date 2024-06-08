@@ -422,7 +422,8 @@ INSERT INTO reparacion (fechaIngreso, fechaEsperada, fechaEntrega, descripcion, 
 ('2022-07-30', '2022-08-05', '2022-08-03', 'Reparación de sistema de refrigeración', 48000, 9),
 ('2024-01-15', '2024-01-20', '2024-01-18', 'Reparación de sistema de combustible', 52000, 10),
 ('2024-06-01', '2024-06-05', '2024-06-04', 'Reparación de sistema de frenos', 30000, 1),
-('2024-07-05', '2024-07-08', '2024-07-12', 'Reparación de sistema de frenos', 30000, 1);
+('2024-07-05', '2024-07-08', '2024-07-12', 'Reparación de sistema de frenos', 30000, 4),
+('2024-08-25', '2024-08-18', '2024-08-22', 'Mantenimiento preventivo', 30000, 2);
 
 
 
@@ -567,7 +568,7 @@ INSERT INTO pieza (nombre, descripcion, precio, idMarca) VALUES
 
 -- Inserciones en la tabla reparacion_servicio con precios corregidos
 INSERT INTO reparacion_servicio (idReparacion, idServicio, idPieza, cantidadPieza, costo) VALUES
-(1, 1, 1, 2, 50000),  
+(1, 1, null, 0, 50000),  
 (1, 2, 2, 3, 60000),   
 (3, 4, 3, 3, 150000),  
 (4, 4, 4, 2, 300000),  
@@ -577,7 +578,9 @@ INSERT INTO reparacion_servicio (idReparacion, idServicio, idPieza, cantidadPiez
 (8, 8, 8, 1, 100000),  
 (9, 9, 9, 2, 60000),   
 (10, 2, 6, 3, 240000),
-(11,3,7,1,250000);  
+(11,3,7,1,250000),
+(12,3,7,1,250000),
+(13,9,null,0,30000);  
 
 
 -- Insertar datos en la tabla proveedor_pieza
