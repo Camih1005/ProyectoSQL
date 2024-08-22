@@ -286,7 +286,3 @@ foreign key (idUbicacion) references inventario_taller(id)
 );
 
 
-
-
-select * from inventario_taller;
-show tables;
